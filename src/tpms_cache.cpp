@@ -6,7 +6,7 @@
 
 //#define USE_M5StickC
 //#define USE_M5Atom
-#include <M5Atom.h>
+#include <M5Stack.h>
 #include <Wire.h>
 #include "NimBLEDevice.h"
 #include "NimBLEBeacon.h"
@@ -41,7 +41,7 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks {
         if (tire >= 0) {
           tpms[tire].scan(data);
           tpms[tire].updated(true);
-          Serial.printf(">>> tire %d, p: %.1f, t: %.1f, b: %f\n", tire,
+          M5.Lcd.printf("T%02d, p:%.1f, t:%.1f, b:%.0f\n", tire,
                         tpms[tire].pressure(), tpms[tire].temp() / 100.0,
                         tpms[tire].battery());
         }
@@ -60,7 +60,6 @@ int setAdvData(BLEAdvertising *pAdvertising, BLEtpms *tp) {
 
   oAdvertisementData.setFlags(
       0x06);  // BR_EDR_NOT_SUPPORTED | LE General Discoverable Mode
-
 
   std::string strServiceData = "";
   strServiceData += (char)0x13;  // 長さ
@@ -92,11 +91,13 @@ int setAdvData(BLEAdvertising *pAdvertising, BLEtpms *tp) {
 }
 
 void setup() {
-  M5.begin(true,true,true);
-  M5.dis.drawpix(0, 0x7f0000);
+  M5.begin();
+  M5.Lcd.setTextFont(4);
+  M5.Lcd.setTextSize(1);
+  M5.Lcd.fillScreen(TFT_BLACK);
 
   Serial.begin(115200);
-  Serial.printf("start ESP32 %d\n", seq);
+  M5.Lcd.printf("Start ESP32\n");
 
   tpms[0].tire_id(TIRE_FL,BLETPMS_Tire_FL);
   tpms[1].tire_id(TIRE_FR,BLETPMS_Tire_FR);
@@ -140,33 +141,24 @@ void setup() {
 void loop() {
   // If an error occurs that stops the scan, it will be restarted here.
   if(pBLEScan->isScanning() == false) {
-      // Start scan with: duration = 0 seconds(forever), no scan end callback, not a continuation of a previous scan.
       pBLEScan->start(0, nullptr, false);
-  }
-
-  if (M5.Btn.wasPressed()) {
-    M5.dis.drawpix(0, 0x007f00);
-    M5.dis.drawpix(0, 0x7f0000);
   }
 
   if (millis() - S_PERIOD * 1000 > p_millis) {
     pBLEScan->stop();
-    M5.dis.drawpix(0, 0x007f00);
     BLEServer *pServer = BLEDevice::createServer();
     BLEAdvertising *pAdvertising = pServer->getAdvertising();
 
-    M5.dis.drawpix(0, 0x00007f);
     for (int i = 0; i < 4; i++) {
       if (tpms[i].updated() && setAdvData(pAdvertising, &(tpms[i])) > 0) {
         pAdvertising->start();
-        Serial.printf("TPMS %d Advertizing started...\n",i);
+        M5.Lcd.printf("TPMS %d Advertizing started...\n",i);
         delay(T_PERIOD * 1000);
         pAdvertising->stop();
       }
     }
     seq++;
     p_millis = millis();
-    M5.dis.drawpix(0, 0x7f0000);
     pBLEScan->start(0, nullptr, false);
   }
   M5.update();
