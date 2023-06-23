@@ -134,3 +134,10 @@ String BLEtpms::macaddress() {
 
   return String(addr_str);
 }
+
+void BLEtpms::last_updated(uint32_t t) {
+  _last_updated = t;
+}
+uint32_t BLEtpms::last_updated() {
+  return _last_updated;
+}

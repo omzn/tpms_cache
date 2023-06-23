@@ -34,6 +34,7 @@ private:
   float _battery_percent;
   uint32_t _battery_raw;
   bool _updated = false;
+  uint32_t _last_updated = 0;
 public:
   static bool isManufacturerId(std::string d);
   static int tire_id(std::string d);
@@ -55,6 +56,8 @@ public:
   void updated(bool);
   bool updated();
   String macaddress();
+  uint32_t last_updated();
+  void last_updated(uint32_t t);
 };
 
 

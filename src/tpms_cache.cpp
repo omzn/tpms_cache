@@ -41,9 +41,13 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks {
         if (tire >= 0) {
           tpms[tire].scan(data);
           tpms[tire].updated(true);
-          M5.Lcd.printf("T%02d, p:%.1f, t:%.1f, b:%.0f\n", tire,
-                        tpms[tire].pressure(), tpms[tire].temp() / 100.0,
-                        tpms[tire].battery());
+          tpms[tire].last_updated(millis());
+          M5.Lcd.setCursor(40 + (tire % 2) * 160, 40 + (tire / 2) * 120);
+          M5.Lcd.printf("Tire %02d", tire, tpms[tire].pressure());
+          M5.Lcd.setCursor(40 + (tire % 2) * 160, 42 + M5.Lcd.fontHeight() + (tire / 2) * 120);
+          M5.Lcd.printf("p:%.1f", tire, tpms[tire].pressure());
+          M5.Lcd.setCursor(40 + (tire % 2) * 160, 44 + M5.Lcd.fontHeight() * 2 + (tire / 2) * 120);
+          M5.Lcd.printf("last: %d", tire, tpms[tire].last_updated()/1000);
         }
       }
     }
@@ -97,7 +101,7 @@ void setup() {
   M5.Lcd.fillScreen(TFT_BLACK);
 
   Serial.begin(115200);
-  M5.Lcd.printf("Start ESP32\n");
+//  M5.Lcd.printf("Start ESP32\n");
 
   tpms[0].tire_id(TIRE_FL,BLETPMS_Tire_FL);
   tpms[1].tire_id(TIRE_FR,BLETPMS_Tire_FR);
@@ -144,15 +148,17 @@ void loop() {
       pBLEScan->start(0, nullptr, false);
   }
 
-  if (millis() - S_PERIOD * 1000 > p_millis) {
+  if (millis() -  p_millis > S_PERIOD * 1000) {
     pBLEScan->stop();
     BLEServer *pServer = BLEDevice::createServer();
     BLEAdvertising *pAdvertising = pServer->getAdvertising();
 
+    M5.Lcd.setCursor(0,0);
+    M5.Lcd.printf("(%5d) Advertizing: ",millis()/1000);
     for (int i = 0; i < 4; i++) {
       if (tpms[i].updated() && setAdvData(pAdvertising, &(tpms[i])) > 0) {
         pAdvertising->start();
-        M5.Lcd.printf("TPMS %d Advertizing started...\n",i);
+        M5.Lcd.printf("%d ",i);
         delay(T_PERIOD * 1000);
         pAdvertising->stop();
       }
