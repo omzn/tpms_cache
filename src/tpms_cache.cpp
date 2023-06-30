@@ -43,11 +43,11 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks {
           tpms[tire].updated(true);
           tpms[tire].last_updated(millis());
           M5.Lcd.setCursor(40 + (tire % 2) * 160, 40 + (tire / 2) * 120);
-          M5.Lcd.printf("Tire %02d", tire, tpms[tire].pressure());
+          M5.Lcd.printf("Tire %02d", tire);
           M5.Lcd.setCursor(40 + (tire % 2) * 160, 42 + M5.Lcd.fontHeight() + (tire / 2) * 120);
-          M5.Lcd.printf("p:%.1f", tire, tpms[tire].pressure());
+          M5.Lcd.printf("p:%.1f", tpms[tire].pressure());
           M5.Lcd.setCursor(40 + (tire % 2) * 160, 44 + M5.Lcd.fontHeight() * 2 + (tire / 2) * 120);
-          M5.Lcd.printf("last: %d", tire, tpms[tire].last_updated()/1000);
+          M5.Lcd.printf("last: %d", tpms[tire].last_updated()/1000);
         }
       }
     }
@@ -130,7 +130,7 @@ void setup() {
 
   NimBLEDevice::setScanFilterMode(CONFIG_BTDM_SCAN_DUPL_TYPE_DATA);
   NimBLEDevice::setScanDuplicateCacheSize(20);
-  NimBLEDevice::init("TPMS_REPEAT");
+  NimBLEDevice::init("TPMS_CACHE");
 
   pBLEScan = NimBLEDevice::getScan(); //create new scan
   // Set the callback for when devices are discovered, no duplicates.
