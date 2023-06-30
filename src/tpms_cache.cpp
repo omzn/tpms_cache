@@ -20,7 +20,7 @@
 #include "BLE_TPMS.h"
 
 #define T_PERIOD 3  // Transmission period
-#define S_PERIOD 10  // Silent period
+#define S_PERIOD 5  // Silent period
 uint32_t seq = 0;
 
 const int wdtTimeout = 15000;  //time in ms to trigger the watchdog
